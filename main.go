@@ -433,7 +433,17 @@ func main() {
 
 	cssProvider, _ := gtk.CssProviderNew()
 
-	err = cssProvider.LoadFromPath(cssFile)
+	resolvedPath, err := os.Readlink(cssFile)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			log.Warnf("Error resolving potential symlink '%s': %v\n", cssFile, err)
+			// Handle the error as appropriate, or proceed with the original cssFile
+		}
+		// If the file is not a symlink or does not exist, use the original path
+		resolvedPath = cssFile
+	}
+
+	err = cssProvider.LoadFromPath(resolvedPath)
 	if err != nil {
 		log.Warnf("%s file not found, using GTK styling\n", cssFile)
 	} else {
